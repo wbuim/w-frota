@@ -1,0 +1,14 @@
+node_modules/
+.env
+.DS_Store
+*.sqlite
+*.db
+/backups/
+*.log
+*.tar.gz
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Ignorar arquivos de contexto
+CONTEXTO_*.txt
+meu_projeto_completo.txt

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Individual do Motorista</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; margin-top: 0; }
+        
+        /* FILTROS */
+        .filters { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; flex: 1; font-size: 14px; }
+        .btn-buscar { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-buscar:hover { background: #0056b3; }
+        
+        /* RESUMO CARDS */
+        .resumo-row { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .card-resumo { flex: 1; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center; min-width: 150px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-resumo h3 { margin: 0; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-resumo p { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #333; }
+
+        /* TABELAS */
+        h2 { color: #444; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-top: 30px; font-size: 18px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #007bff; color: white; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
+        tr:hover { background-color: #f8f9fa; }
+        
+        .btn-voltar { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #555; font-weight: bold; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; background: #fff; transition: 0.2s; }
+        .btn-voltar:hover { background: #eee; }
+
+        .time-badge { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #555; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="/" class="btn-voltar">← Voltar ao Painel</a>
+
+    <h1>👮 Relatório de Motorista</h1>
+
+    <div class="filters">
+        <form action="/relatorio_motorista" method="GET" style="display:flex; width:100%; gap:10px;">
+            <select name="motorista" required>
+                <option value="">Selecione um Motorista...</option>
+                <% usuarios.forEach(u => { %>
+                    <option value="<%= u.nome %>" <%= motoristaSelecionado === u.nome ? 'selected' : '' %>><%= u.nome %></option>
+                <% }) %>
+            </select>
+            <button type="submit" class="btn-buscar">🔍 Gerar Relatório</button>
+        </form>
+    </div>
+
+    <% if(dados) { %>
+        
+        <div class="resumo-row">
+            <div class="card-resumo">
+                <h3>Viagens Realizadas</h3>
+                <p><%= dados.viagens.length %></p>
+            </div>
+            <div class="card-resumo">
+                <h3>KM Total Rodado</h3>
+                <p><%= dados.totalKm %> km</p>
+            </div>
+            <div class="card-resumo">
+                <h3>Tempo em Direção</h3>
+                <p><%= dados.tempoFormatado %></p>
+            </div>
+            <div class="card-resumo" style="border-bottom: 4px solid #ffc107;">
+                <h3>Gasto Combustível</h3>
+                <p><%= dados.totalGastoCombustivel.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) %></p>
+            </div>
+        </div>
+
+        <h2>Histórico de Viagens (Concluídas)</h2>
+        <% if(dados.viagens.length === 0) { %>
+            <p style="color:#777; font-style: italic;">Nenhuma viagem encontrada para este período.</p>
+        <% } else { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Veículo</th>
+                        <th>Destino</th>
+                        <th>Detalhes (KM e Horário)</th>
+                        <th>Duração</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% dados.viagens.forEach(v => { %>
+                    <tr>
+                        <td><%= new Date(v.data_saida).toLocaleDateString('pt-BR') %></td>
+                        <td><%= v.veiculo ? v.veiculo.modelo : 'Veículo Excluído' %> <br> <small style="color:#777;"><%= v.veiculo ? v.veiculo.placa : '' %></small></td>
+                        <td><%= v.destino %></td>
+                        <td>
+                            <% 
+                                // Formata as horas para mostrar apenas HH:MM
+                                const horaSaida = new Date(v.data_saida).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                                const horaVolta = new Date(v.data_volta).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                            %>
+                            
+                            <div style="margin-bottom: 4px;">
+                                Saída: <%= v.km_saida %> km <span class="time-badge">🕑 <%= horaSaida %></span>
+                            </div>
+                            <div>
+                                Chegada: <%= v.km_volta %> km <span class="time-badge">🏁 <%= horaVolta %></span>
+                            </div>
+                            
+                            <div style="margin-top: 5px; font-size: 12px; color: #007bff;">
+                                <strong>Rodou: <%= v.km_rodados %> km</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <% 
+                               const diff = new Date(v.data_volta) - new Date(v.data_saida);
+                               const min = Math.floor(diff / 60000);
+                               const h = Math.floor(min / 60);
+                               const m = min % 60;
+                            %>
+                            <%= h %>h <%= m %>m
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } %>
+
+        <h2>Histórico de Abastecimentos</h2>
+        <% if(dados.abastecimentos.length === 0) { %>
+            <p style="color:#777; font-style: italic;">Nenhum abastecimento registrado por este usuário.</p>
+        <% } else { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Veículo</th>
+                        <th>Detalhes</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% dados.abastecimentos.forEach(a => { %>
+                    <tr>
+                        <td><%= new Date(a.data).toLocaleDateString('pt-BR') %></td>
+                        <td><%= a.veiculo ? a.veiculo.modelo : 'Excluído' %></td>
+                        <td><%= a.litros %>L de <%= a.tipo_combustivel %> <br> <small style="color:#777;"><%= a.posto %></small></td>
+                        <td><strong><%= a.valor_total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) %></strong></td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } %>
+
+    <% } else if (motoristaSelecionado) { %>
+        <p style="text-align:center; padding: 20px; color: #666;">Motorista selecionado não possui registros ou não foi encontrado.</p>
+    <% } else { %>
+        <p style="text-align:center; padding: 40px; color: #999;">Selecione um motorista acima para ver o desempenho.</p>
+    <% } %>
+
+</div>
+
+</body>
+</html>

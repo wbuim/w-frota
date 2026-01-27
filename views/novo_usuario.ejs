@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Usuário</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #e9ecef; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { margin-top: 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; }
+        
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button:hover { background: #218838; }
+        
+        .btn-cancelar { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>👤 Cadastrar Usuário</h2>
+        <form action="/salvar_usuario" method="POST">
+            <label>Nome Completo</label>
+            <input type="text" name="nome" placeholder="Ex: João da Silva" required>
+
+            <label>Login de Acesso</label>
+            <input type="text" name="login" placeholder="Ex: joao.silva" required>
+
+            <label>Senha</label>
+            <input type="password" name="senha" placeholder="******" required>
+
+            <label>Tipo de Permissão</label>
+            <select name="tipo">
+                <option value="padrao">Motorista (Acesso Simplificado)</option>
+                <option value="admin">Administrador (Gestão Total)</option>
+            </select>
+
+            <button type="submit">Salvar Cadastro</button>
+            <a href="/usuarios" class="btn-cancelar">Cancelar</a>
+        </form>
+    </div>
+
+</body>
+</html>

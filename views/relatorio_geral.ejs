@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Financeiro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* CABEÇALHO */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        h1 { margin: 0; color: #2c3e50; font-size: 24px; }
+        .data-ref { font-size: 14px; color: #777; font-weight: normal; }
+
+        /* BARRA DE FILTROS */
+        .filter-bar { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #e9ecef; display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap; }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-size: 12px; font-weight: bold; color: #666; }
+        .filter-group input { padding: 8px; border: 1px solid #ced4da; border-radius: 4px; }
+        .btn-filtrar { background: #28a745; color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-filtrar:hover { background: #218838; }
+        .btn-limpar { background: #6c757d; color: white; text-decoration: none; padding: 9px 15px; border-radius: 4px; font-size: 14px; display: inline-block; }
+
+        /* BOTÕES */
+        .btn-voltar { text-decoration: none; color: #555; background: #e9ecef; padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 14px; }
+        .btn-imprimir { background: #007bff; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-imprimir:hover { background: #0056b3; }
+
+        /* RESUMO TOTAL */
+        .total-box { background: #28a745; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-size: 18px; }
+        .total-valor { font-size: 32px; font-weight: bold; display: block; margin-top: 5px; }
+
+        /* TABELA */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8f9fa; color: #555; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #ddd; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        .destaque-negativo { color: #dc3545; font-weight: bold; }
+
+        /* --- MODO IMPRESSÃO --- */
+        @media print {
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            .container { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .btn-voltar, .btn-imprimir, .filter-bar { display: none !important; } /* Esconde filtros na impressão */
+            h1 { font-size: 20px !important; color: black !important; border-bottom: 1px solid #000 !important; }
+            .total-box { background: white !important; color: black !important; border: 1px solid #000 !important; padding: 10px !important; }
+            table { border: 1px solid #000 !important; width: 100% !important; }
+            th { background: #ddd !important; color: black !important; border: 1px solid #000 !important; font-weight: bold !important; }
+            td { border: 1px solid #000 !important; color: black !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>
+            📊 Relatório Financeiro
+            <br><span class="data-ref">
+                <% if(filtro.inicio) { %>
+                    Período: <%= new Date(filtro.inicio).toLocaleDateString('pt-BR') %> até <%= new Date(filtro.fim).toLocaleDateString('pt-BR') %>
+                <% } else { %>
+                    Período: Todo o Histórico
+                <% } %>
+            </span>
+        </h1>
+        <div style="display:flex; gap:10px;">
+            <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir</button>
+            <a href="/" class="btn-voltar">Voltar</a>
+        </div>
+    </div>
+
+    <form action="/relatorio_geral" method="GET" class="filter-bar">
+        <div class="filter-group">
+            <label>Data Início:</label>
+            <input type="date" name="inicio" value="<%= filtro.inicio %>" required>
+        </div>
+        <div class="filter-group">
+            <label>Data Fim:</label>
+            <input type="date" name="fim" value="<%= filtro.fim %>" required>
+        </div>
+        <button type="submit" class="btn-filtrar">Filtrar</button>
+        <% if(filtro.inicio) { %>
+            <a href="/relatorio_geral" class="btn-limpar">Limpar Filtro</a>
+        <% } %>
+    </form>
+
+    <div class="total-box">
+        Custo Total no Período
+        <span class="total-valor"><%= totalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) %></span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Veículo</th>
+                <th>KM Atual</th>
+                <th>Combustível (R$)</th>
+                <th>Oficina (R$)</th>
+                <th>Consumo Médio</th>
+                <th>Total Geral</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% relatorio.forEach(item => { %>
+            <tr>
+                <td>
+                    <strong><%= item.modelo %></strong> <br>
+                    <span style="color:#777; font-size:12px;"><%= item.placa %></span>
+                </td>
+                <td><%= item.km %> km</td>
+                
+                <td>
+                    <%= item.combustivel.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) %>
+                    <br><small style="color:#777"><%= item.litros.toFixed(1) %> Litros</small>
+                </td>
+                
+                <td>
+                    <%= item.oficina.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) %>
+                    <br><small style="color:#777"><%= item.qtd_oficina %> serviços</small>
+                </td>
+                
+                <td style="font-weight:bold; color: #007bff;">
+                    <%= item.consumo %> km/l
+                </td>
+                
+                <td class="destaque-negativo">
+                    <%= item.total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) %>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 30px; font-size: 12px; color: #999; text-align: center;">
+        W-Frota - Sistema de Gestão Inteligente
+    </div>
+</div>
+
+</body>
+</html>
