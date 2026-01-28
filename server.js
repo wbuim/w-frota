@@ -208,6 +208,42 @@ app.post('/novo_departamento', auth, async (req, res) => { // MUDAMOS O NOME DA 
     }
 });
 
+// --- EDITAR DEPARTAMENTO ---
+app.post('/editar_departamento', auth, async (req, res) => {
+    try {
+        if (req.session.user.nivel !== 99) return res.send("Acesso Negado.");
+        
+        const { id, nome } = req.body;
+        await Departamento.update({ nome }, { where: { id } });
+        
+        res.redirect('/usuarios');
+    } catch (error) {
+        res.send("Erro ao editar: " + error.message);
+    }
+});
+
+// --- DELETAR DEPARTAMENTO ---
+app.get('/deletar_departamento/:id', auth, async (req, res) => {
+    try {
+        if (req.session.user.nivel !== 99) return res.send("Acesso Negado.");
+        
+        const id = req.params.id;
+
+        // 🔒 Proteção: Não deixa apagar a Matriz/Geral (ID 1)
+        if (id == 1) {
+            return res.send("<script>alert('A Matriz não pode ser excluída!'); window.location.href='/usuarios';</script>");
+        }
+
+        // Tenta apagar
+        await Departamento.destroy({ where: { id } });
+        res.redirect('/usuarios');
+
+    } catch (error) {
+        // Se cair aqui, é porque tem usuários ou carros vinculados (Erro de Foreign Key)
+        res.send("<script>alert('Não é possível excluir este departamento pois existem Usuários ou Veículos vinculados a ele. Mude-os de setor primeiro.'); window.location.href='/usuarios';</script>");
+    }
+});
+
 // --- GESTÃO DE EQUIPE (USUÁRIOS) ---
 app.get('/usuarios', auth, async (req, res) => {
     const user = req.session.user;
@@ -253,6 +289,37 @@ app.post('/salvar_usuario', auth, async (req, res) => {
 app.get('/deletar_usuario/:id', auth, async (req, res) => {
     await Usuario.destroy({ where: { id: req.params.id } });
     res.redirect('/usuarios');
+});
+
+// --- EDITAR USUÁRIO (Senha, Login, Nome, Depto) ---
+app.post('/editar_usuario', auth, async (req, res) => {
+    try {
+        if (req.session.user.nivel !== 99) return res.send("Acesso Negado.");
+
+        const { id, nome, login, senha, nivel_acesso, departamento_id } = req.body;
+
+        // Monta o objeto de atualização
+        let dadosAtualizar = {
+            nome: nome,
+            login: login,
+            nivel: parseInt(nivel_acesso),
+            departamentoId: departamento_id
+        };
+
+        // Regra da Senha: Só atualiza se o campo não estiver vazio
+        if (senha && senha.trim() !== "") {
+            const hash = await bcrypt.hash(senha, 10);
+            dadosAtualizar.senha = hash; // Adiciona a nova senha criptografada
+        }
+
+        // Atualiza no banco
+        await Usuario.update(dadosAtualizar, { where: { id: id } });
+
+        res.redirect('/usuarios');
+
+    } catch (error) {
+        res.send("Erro ao editar usuário (Login duplicado?): " + error.message);
+    }
 });
 
 // --- OPERAÇÕES DIÁRIAS (SAÍDA / CHEGADA) ---
