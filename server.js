@@ -366,11 +366,29 @@ app.post('/registrar_abastecimento', auth, upload.single('foto'), async (req, re
     res.redirect('/');
 });
 
+// --- ROTA ATUALIZADA: REGISTRAR MANUTENÇÃO (TRAVA O CARRO) ---
 app.post('/registrar_manutencao', auth, upload.single('foto'), async (req, res) => {
     const { veiculo_id, data, oficina, descricao, valor, km_momento } = req.body;
     const foto = req.file ? req.file.filename : null;
+    
+    // Cria o registro
     await Manutencao.create({ veiculoId: veiculo_id, data, oficina, descricao, valor, km_momento, foto });
+    
+    // ATUALIZAÇÃO: Muda o status do carro para "Manutenção"
+    await Veiculo.update({ status: 'Manutenção' }, { where: { id: veiculo_id } });
+
     res.redirect('/');
+});
+
+// --- NOVA ROTA: FINALIZAR MANUTENÇÃO (LIBERA O CARRO) ---
+app.post('/finalizar_manutencao', auth, async (req, res) => {
+    const { veiculo_id } = req.body;
+    
+    // Volta o status para Disponível
+    await Veiculo.update({ status: 'Disponível' }, { where: { id: veiculo_id } });
+    
+    // Redireciona de volta para a tela do veículo
+    res.redirect('/veiculo/' + veiculo_id);
 });
 
 // --- FERRAMENTAS ADMIN (Correções) ---

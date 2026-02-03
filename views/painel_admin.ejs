@@ -82,10 +82,17 @@
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; background: white; }
         tr:last-child td { border-bottom: none; }
         
+        /* --- ATUALIZAÇÃO DE CORES DAS BADGES --- */
         .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
-        .status-disp { background: #d4edda; color: #155724; }
-        .status-uso { background: #f8d7da; color: #721c24; }
-        .status-manu { background: #fff3cd; color: #856404; }
+        
+        /* LIVRE = VERDE */
+        .status-disp { background: #d4edda; color: #155724; } 
+        
+        /* EM USO = AZUL (Alterado) */
+        .status-uso { background: #cce5ff; color: #004085; }  
+        
+        /* OFICINA = VERMELHO (Alterado) */
+        .status-manu { background: #f8d7da; color: #721c24; } 
 
         /* RESPONSIVIDADE */
         @media (max-width: 768px) {
@@ -395,15 +402,38 @@
     window.addEventListener('offline', () => { document.body.dataset.jaCaiu = "sim"; atualizarStatusConexao(); });
     atualizarStatusConexao();
 
-    // Gráficos
+    // --- ATUALIZAÇÃO DAS CORES DOS GRÁFICOS ---
     const chartStatus = new Chart(document.getElementById('graficoStatus'), {
         type: 'doughnut',
-        data: { labels: ['Livres', 'Em Uso', 'Oficina'], datasets: [{ data: [<%= stats.ativos %>, <%= stats.ocupados %>, <%= stats.oficina %>], backgroundColor: ['#28a745', '#dc3545', '#ffc107'], borderWidth: 0 }] },
+        data: { 
+            labels: ['Livres', 'Em Uso', 'Oficina'], 
+            datasets: [{ 
+                data: [<%= stats.ativos %>, <%= stats.ocupados %>, <%= stats.oficina %>], 
+                backgroundColor: [
+                    '#28a745', // Verde (Livres)
+                    '#007bff', // Azul (Em Uso - Corrigido)
+                    '#dc3545'  // Vermelho (Oficina - Corrigido)
+                ], 
+                borderWidth: 0 
+            }] 
+        },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' }, title: { display: true, text: 'Status da Frota' } } }
     });
+    
     const chartFinanceiro = new Chart(document.getElementById('graficoFinanceiro'), {
         type: 'bar',
-        data: { labels: ['Combustível', 'Manutenção'], datasets: [{ label: 'R$', data: [<%= stats.totalAbastecimentos %>, <%= stats.totalManutencao %>], backgroundColor: ['#ffc107', '#dc3545'], borderRadius: 5 }] },
+        data: { 
+            labels: ['Combustível', 'Manutenção'], 
+            datasets: [{ 
+                label: 'R$', 
+                data: [<%= stats.totalAbastecimentos %>, <%= stats.totalManutencao %>], 
+                backgroundColor: [
+                    '#ffc107', // Amarelo (Combustível)
+                    '#dc3545'  // Vermelho (Manutenção - Igual à Oficina)
+                ], 
+                borderRadius: 5 
+            }] 
+        },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Custos Totais' } } }
     });
 </script>

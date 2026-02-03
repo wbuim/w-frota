@@ -55,6 +55,23 @@
         <a href="/" class="btn-voltar">← Voltar</a>
     </div>
 
+    <% if(veiculo.status === 'Manutenção') { %>
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <strong style="color: #721c24; font-size: 18px;">⚠️ Este veículo está na Oficina</strong>
+                <br>
+                <small style="color: #721c24;">Ele não aparecerá na lista de saídas até que você dê baixa.</small>
+            </div>
+            
+            <form action="/finalizar_manutencao" method="POST" style="margin: 0;">
+                <input type="hidden" name="veiculo_id" value="<%= veiculo.id %>">
+                <button type="submit" style="background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                    ✅ Finalizar Manutenção (Liberar Veículo)
+                </button>
+            </form>
+        </div>
+    <% } %>
+
     <div class="resumo-grid">
         <div class="card-resumo">
             <h3>KM Atual</h3>
